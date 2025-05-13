@@ -1,0 +1,16 @@
+.employee-title-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.skill-list {
+    display: flex;
+    gap: 8px;
+    list-style-type: none;
+}
+
+.employee-action {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
