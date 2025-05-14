@@ -14,3 +14,14 @@
     justify-content: space-between;
     margin-bottom: 20px;
 }
+
+.skill-field-container {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.no-skills-message {
+    display: flex;
+    align-items: center;
+}

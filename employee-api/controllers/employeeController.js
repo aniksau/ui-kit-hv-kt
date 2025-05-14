@@ -5,7 +5,7 @@ let employees = [
         firstName: 'Avik',
         lastName: 'Mukherjee',
         designation: 'Trainee Engineer',
-        skills: ['Linux', 'Perl']
+        skills: [{ skill: 'Linux' }, { skill: 'Perl' }]
     },
     {
         id: 2,
@@ -13,7 +13,7 @@ let employees = [
         firstName: 'Pavan',
         lastName: 'Subbarao',
         designation: 'Manager',
-        skills: ['Jira', 'Management']
+        skills: [{ skill: 'Jira' }, { skill: 'Management' }]
     },
     {
         id: 3,
@@ -21,9 +21,18 @@ let employees = [
         firstName: 'Jatin',
         lastName: 'Maheshwari',
         designation: 'Senior Engineer',
-        skills: ['Java', 'Apache']
+        skills: [{ skill: 'Java' }, { skill: 'Maven' }]
     }
 ];
+
+const getRandomInt = () => {
+    const min = 1;
+    const max = 99;
+    const num = Math.floor(Math.random() * (max - min + 1)) + min;
+    if (employees.some(emp => emp.id === num)) getRandomInt();
+    else return num;
+};
+
 
 exports.getAllEmployees = (req, res) => res.json(employees);
 
@@ -34,9 +43,9 @@ exports.getEmployeeById = (req, res) => {
 };
 
 exports.createEmployee = (req, res) => {
-    const id = employees.length + 1;
+    const id = getRandomInt();
     const avatar = `https://randomuser.me/api/portraits/men/${id}.jpg`;
-    const newEmployee = { id, avatar, ...req.body };
+    const newEmployee = { ...req.body, id, avatar, };
     employees.push(newEmployee);
     res.status(201).json(newEmployee);
 };

@@ -1,8 +1,13 @@
 export interface Employee {
-    id: number;
-    avatar: string;
+    id?: number;
+    avatar?: string;
     firstName: string;
     lastName: string;
     designation: string;
-    skills: string[];
+    skills?: Skill[];
+    // skills: string[]
+}
+
+interface Skill {
+    skill: string
 }
