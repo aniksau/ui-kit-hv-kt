@@ -88,10 +88,10 @@ Ensure you have the following installed:
 3. Start the development server:
 
    ```bash
-   npm start
+   npm run dev
    ```
 
-   The application will be accessible at [http://localhost:3001](http://localhost:3001).
+   The application will be accessible at [http://localhost:3001](http://localhost:5173).
 
 ## API Endpoints
 
