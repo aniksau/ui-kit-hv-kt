@@ -15,6 +15,7 @@ import {
     HvDialogTitle,
     HvDialogContent,
     HvDialogActions,
+    HvSnackbar,
 } from "@hitachivantara/uikit-react-core";
 import './EmployeeList.css';
 import { Employee } from "../../types/employees";
@@ -24,6 +25,7 @@ import { Add, Caution, Delete, Edit } from "@hitachivantara/uikit-react-icons";
 import { getRandomColorToken } from "../../constants/colors";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { parseFieldStatus } from "../../functions";
+import { SnackbarType } from "../../types/snackbar";
 
 const defaultValues: Employee = {
     firstName: "",
@@ -33,11 +35,21 @@ const defaultValues: Employee = {
     skills: []
 };
 
+const defaultSnackbar: SnackbarType = {
+    open: false,
+    variant: '',
+    message: ''
+}
+
 const EmployeeList = () => {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [openDialog, setOpenDialog] = useState(false);
 
-    const { control, handleSubmit, formState: { errors } } = useForm<Employee>({ defaultValues });
+    const [snackbar, setSnackbar] = useState(defaultSnackbar);
+
+    const [targetEmployee, setTargetEmployee] = useState<Employee>({} as Employee);
+
+    const { control, handleSubmit, reset, formState: { errors } } = useForm<Employee>({ defaultValues });
     const { fields, append, remove } = useFieldArray({ control, name: 'skills' });
 
     useEffect(() => {
@@ -47,7 +59,7 @@ const EmployeeList = () => {
             .catch((err) => console.error("Failed to fetch employees:", err));
     }, []);
 
-    const handleAddClick = () => {
+    const handleDialogOpen = () => {
         setOpenDialog(true);
     };
 
@@ -58,11 +70,20 @@ const EmployeeList = () => {
     const onSubmit = (data: Employee) => {
         axios.post<Employee>(`${endpoint}/${APIS.employees}`, data)
             .then(response => {
-                console.log(response);
                 setEmployees([...employees, response.data]);
                 handleDialogClose();
+                reset();
+                setSnackbar({ open: true, variant: 'success', message: 'Employee added.' });
             })
-            .catch(err => console.log(err));
+            .catch(err => {
+                setSnackbar({ open: true, variant: 'error', message: err?.response?.data?.errorMessage });
+            });
+    };
+
+    const onEditEmployee = (emp: Employee) => {
+        setTargetEmployee(emp);
+        handleDialogOpen();
+        reset(emp);
     };
 
     return (
@@ -72,7 +93,7 @@ const EmployeeList = () => {
                 title="Employees"
                 position="sticky"
                 className="employee-action">
-                <HvButton className="add-employee-btn" startIcon={<Add />} onClick={handleAddClick}>
+                <HvButton className="add-employee-btn" startIcon={<Add />} onClick={handleDialogOpen}>
                     Add
                 </HvButton>
             </HvGlobalActions>
@@ -113,7 +134,7 @@ const EmployeeList = () => {
 
                             </HvCardContent>
                             <HvActionBar>
-                                <HvButton onClick={() => { }} icon color="primary" style={{ marginRight: 8 }}><Edit /></HvButton>
+                                <HvButton onClick={() => onEditEmployee(emp)} icon color="primary" style={{ marginRight: 8 }}><Edit /></HvButton>
                                 <HvButton onClick={() => { }} icon color="negative"><Delete /></HvButton>
                             </HvActionBar>
                         </HvCard>
@@ -226,6 +247,13 @@ const EmployeeList = () => {
                     <HvButton variant="secondary" onClick={handleDialogClose} >Cancel</HvButton>
                 </HvDialogActions>
             </HvDialog>
+            <HvSnackbar
+                label={snackbar?.message}
+                variant={snackbar?.variant}
+                showIcon
+                open={snackbar.open}
+                onClose={() => setSnackbar(defaultSnackbar)}
+            />
         </>
     );
 };

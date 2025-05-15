@@ -45,7 +45,7 @@ exports.getEmployeeById = (req, res) => {
 exports.createEmployee = (req, res) => {
     const id = getRandomInt();
     const avatar = `https://randomuser.me/api/portraits/men/${id}.jpg`;
-    const newEmployee = { ...req.body, id, avatar, };
+    const newEmployee = { ...req.body, id, avatar };
     employees.push(newEmployee);
     res.status(201).json(newEmployee);
 };

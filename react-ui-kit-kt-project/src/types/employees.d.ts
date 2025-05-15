@@ -5,7 +5,6 @@ export interface Employee {
     lastName: string;
     designation: string;
     skills?: Skill[];
-    // skills: string[]
 }
 
 interface Skill {
