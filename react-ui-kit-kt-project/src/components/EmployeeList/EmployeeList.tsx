@@ -10,22 +10,16 @@ import {
     HvTag,
     HvActionBar,
     HvGlobalActions,
-    HvDialog,
-    HvInput,
-    HvDialogTitle,
-    HvDialogContent,
-    HvDialogActions,
-    HvSnackbar,
+    HvBanner,
 } from "@hitachivantara/uikit-react-core";
 import './EmployeeList.css';
 import { Employee } from "../../types/employees";
 import axios from "axios";
-import { APIS, endpoint } from "../../constants/endpoints";
 import { Add, Caution, Delete, Edit } from "@hitachivantara/uikit-react-icons";
 import { getRandomColorToken } from "../../constants/colors";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
-import { parseFieldStatus } from "../../functions";
 import { SnackbarType } from "../../types/snackbar";
+import { API_URL, ENDPOINTS } from "../../constants/endpoints";
+import { EmployeeFormDialog } from "../EmployeeFormDialog/EmployeeFormDialog";
 
 const defaultValues: Employee = {
     firstName: "",
@@ -42,58 +36,58 @@ const defaultSnackbar: SnackbarType = {
 }
 
 const EmployeeList = () => {
-    const [employees, setEmployees] = useState<Employee[]>([]);
-    const [openDialog, setOpenDialog] = useState(false);
-
-    const [snackbar, setSnackbar] = useState(defaultSnackbar);
-
+    const [employees, setEmployees] = useState<Employee[]>([] as Employee[]);
+    const [employeeFetchError, setEmployeeFetchError] = useState({ employeesError: false, message: '' })
+    const [employeeDialog, setEmployeeDialog] = useState(false);
     const [targetEmployee, setTargetEmployee] = useState<Employee>({} as Employee);
 
-    const { control, handleSubmit, reset, formState: { errors } } = useForm<Employee>({ defaultValues });
-    const { fields, append, remove } = useFieldArray({ control, name: 'skills' });
-
     useEffect(() => {
-        axios.get<Employee[]>(`${endpoint}/${APIS.employees}`)
-            .then((res) => res.data)
-            .then(setEmployees)
-            .catch((err) => console.error("Failed to fetch employees:", err));
+        getEmployees();
     }, []);
 
-    const handleDialogOpen = () => {
-        setOpenDialog(true);
-    };
-
-    const handleDialogClose = () => {
-        setOpenDialog(false);
-    };
-
-    const onSubmit = (data: Employee) => {
-        axios.post<Employee>(`${endpoint}/${APIS.employees}`, data)
+    const getEmployees = () => {
+        axios.get<Employee[]>(`${API_URL}/${ENDPOINTS.employees}`)
             .then(response => {
-                setEmployees([...employees, response.data]);
-                handleDialogClose();
-                reset();
-                setSnackbar({ open: true, variant: 'success', message: 'Employee added.' });
+                setEmployees(response.data);
             })
-            .catch(err => {
-                setSnackbar({ open: true, variant: 'error', message: err?.response?.data?.errorMessage });
+            .catch(error => {
+                setEmployeeFetchError({ employeesError: true, message: 'Unable to fetch employees' });
             });
+    };
+
+    const dialogOpenHandler = () => {
+        setEmployeeDialog(true);
+    };
+
+    const dialogCloseHandler = () => {
+        setEmployeeDialog(false);
+        setTargetEmployee({} as Employee);
+    };
+
+    const newEmployeeHandler = (newEmployee: Employee) => {
+        setEmployees([...employees, newEmployee]);
+        dialogCloseHandler();
     };
 
     const onEditEmployee = (emp: Employee) => {
         setTargetEmployee(emp);
-        handleDialogOpen();
-        reset(emp);
+        dialogOpenHandler();
     };
 
     return (
         <>
+            <HvBanner
+                label={employeeFetchError.message}
+                variant="error"
+                showIcon
+                open={employeeFetchError.employeesError}
+            />
             <HvGlobalActions
                 variant="global"
                 title="Employees"
                 position="sticky"
                 className="employee-action">
-                <HvButton className="add-employee-btn" startIcon={<Add />} onClick={handleDialogOpen}>
+                <HvButton className="add-employee-btn" startIcon={<Add />} onClick={() => dialogOpenHandler()}>
                     Add
                 </HvButton>
             </HvGlobalActions>
@@ -134,125 +128,27 @@ const EmployeeList = () => {
 
                             </HvCardContent>
                             <HvActionBar>
-                                <HvButton onClick={() => onEditEmployee(emp)} icon color="primary" style={{ marginRight: 8 }}><Edit /></HvButton>
-                                <HvButton onClick={() => { }} icon color="negative"><Delete /></HvButton>
+                                <HvButton
+                                    onClick={() => onEditEmployee(emp)}
+                                    icon
+                                    color="primary"
+                                    style={{ marginRight: 8 }}>
+                                    <Edit />
+                                </HvButton>
+                                <HvButton onClick={() => { }} icon color="negative">
+                                    <Delete />
+                                </HvButton>
                             </HvActionBar>
                         </HvCard>
                     </HvGrid>
                 ))}
             </HvGrid>
 
-            <HvDialog
-                open={openDialog}
-                onClose={handleDialogClose}
-                fullWidth
-            >
-                <HvDialogTitle>Add New Employee</HvDialogTitle>
-                <HvDialogContent>
-                    <form id="addEmployee" onSubmit={handleSubmit(onSubmit)}>
-                        <HvGrid container spacing="sm">
-                            <HvGrid item xs={12}>
-                                <Controller
-                                    name="firstName"
-                                    control={control}
-                                    rules={{
-                                        required: {
-                                            value: true,
-                                            message: 'Enter first name'
-                                        }
-                                    }}
-                                    render={({ field }) => <HvInput
-                                        {...field}
-                                        label="First Name*"
-                                        status={parseFieldStatus(errors?.firstName)}
-                                        statusMessage={errors.firstName?.message || ''}
-                                    />}
-                                />
-                            </HvGrid>
-                            <HvGrid item xs={12}>
-                                <Controller
-                                    name="lastName"
-                                    control={control}
-                                    rules={{
-                                        required: {
-                                            value: true,
-                                            message: 'Enter last name'
-                                        }
-                                    }}
-                                    render={({ field }) => <HvInput
-                                        {...field}
-                                        label="Last Name*"
-                                        status={parseFieldStatus(errors?.lastName)}
-                                        statusMessage={errors.lastName?.message || ''}
-                                    />}
-                                />
-                            </HvGrid>
-                            <HvGrid item xs={12}>
-                                <Controller
-                                    name="designation"
-                                    control={control}
-                                    rules={{
-                                        required: {
-                                            value: true,
-                                            message: 'Enter designation'
-                                        }
-                                    }}
-                                    render={({ field }) => <HvInput
-                                        {...field}
-                                        label="Designation*"
-                                        status={parseFieldStatus(errors?.designation)}
-                                        statusMessage={errors.designation?.message || ''}
-                                    />}
-                                />
-                            </HvGrid>
-
-                            {fields.map((field, index) => (
-                                <HvGrid item key={`field${index}`} sm={12} className="skill-field-container">
-                                    <Controller
-                                        name={`skills.${index}.skill`}
-                                        control={control}
-                                        rules={{
-                                            required: {
-                                                value: true,
-                                                message: 'Enter a skill'
-                                            }
-                                        }}
-                                        render={({ field }) => <HvInput
-                                            {...field}
-                                            label={`Skill ${index + 1}`}
-                                            status={parseFieldStatus(errors.skills?.[index]?.skill)}
-                                            statusMessage={errors.skills?.[index]?.skill?.message || ''}
-                                        />}
-                                    />
-                                    <HvButton
-                                        icon
-                                        color="negative"
-                                        variant="secondary"
-                                        onClick={() => remove(index)}>
-                                        <Delete />
-                                    </HvButton>
-                                </HvGrid>
-                            ))}
-                        </HvGrid>
-                        <HvButton
-                            onClick={() => append({ skill: '' })}
-                            style={{ marginTop: 16 }}
-                            variant="secondary"
-                            startIcon={<Add />}
-                        >Add Skill</HvButton>
-                    </form>
-                </HvDialogContent>
-                <HvDialogActions>
-                    <HvButton type="submit" form="addEmployee">Add</HvButton>
-                    <HvButton variant="secondary" onClick={handleDialogClose} >Cancel</HvButton>
-                </HvDialogActions>
-            </HvDialog>
-            <HvSnackbar
-                label={snackbar?.message}
-                variant={snackbar?.variant}
-                showIcon
-                open={snackbar.open}
-                onClose={() => setSnackbar(defaultSnackbar)}
+            <EmployeeFormDialog
+                isOpen={employeeDialog}
+                addEmployeeHandler={newEmployeeHandler}
+                dialogCloseHandler={dialogCloseHandler}
+                employeeDetails={targetEmployee}
             />
         </>
     );

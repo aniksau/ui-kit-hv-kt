@@ -1,5 +1,5 @@
-export const endpoint = 'http://localhost:3000/api'
+export const API_URL = 'http://localhost:3000/api';
 
-export const APIS = {
+export const ENDPOINTS = {
     employees: 'employees'
-}
+};
