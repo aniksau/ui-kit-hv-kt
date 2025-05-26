@@ -7,6 +7,10 @@ import { API_URL, ENDPOINTS } from "../../constants/endpoints";
 import { Add, Delete } from "@hitachivantara/uikit-react-icons";
 import './EmployeeFormDialog.css';
 import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../store/store";
+import { resetEmployeeToEdit } from "../../store/employeeToEditSlice";
+import { setEditedEmployee, setNewEmployee } from "../../store/employeeListSlice";
 
 const defaultValues: Employee = {
     firstName: '',
@@ -17,29 +21,46 @@ const defaultValues: Employee = {
 
 export const EmployeeFormDialog = (
     { isOpen,
-        addEmployeeHandler,
         dialogCloseHandler,
-        employeeDetails
     }: {
         isOpen: boolean,
-        employeeDetails?: Employee
-        addEmployeeHandler: (employee: Employee) => void,
         dialogCloseHandler: () => void
     }) => {
-    const { control, handleSubmit, reset, formState: { errors }, getValues } = useForm<Employee>({ defaultValues });
+    const { control, handleSubmit, reset, formState: { errors } } = useForm<Employee>({ defaultValues });
     const { fields, append, remove } = useFieldArray({ control, name: 'skills' });
+
+    const dispatch = useDispatch();
+
+    const employeeDetails = useSelector((state: RootState) => state?.employeeToEdit?.targetEmployee);
 
     useEffect(() => {
         reset(employeeDetails);
     }, [JSON.stringify(employeeDetails)]);
 
-    const addFormHandler = (data: Employee) => {
+    const formSubmitHandler = (data: Employee) => {
+        employeeDetails?.id ? editHandler(data) : addHandler(data);
+    };
+
+    const addHandler = (data: Employee) => {
         axios.post(`${API_URL}/${ENDPOINTS.employees}`, data)
             .then(newEmployeeResponse => {
-                addEmployeeHandler(newEmployeeResponse.data);
                 reset(defaultValues);
+                dispatch(setNewEmployee(newEmployeeResponse?.data));
+                dialogCloseHandler();
+
             })
             .catch(error => { console.log('Failed to add') });
+    };
+
+    const editHandler = (data: Employee) => {
+        axios.put(`${API_URL}/${ENDPOINTS.employees}/${employeeDetails.id}`, data)
+            .then(editedEmployeeResponse => {
+                onDialogClose();
+                dispatch(resetEmployeeToEdit());
+                dispatch(setEditedEmployee(editedEmployeeResponse?.data));
+                dialogCloseHandler();
+            })
+            .catch(error => { console.log('Failed to edit') });
     };
 
     const onDialogClose = () => {
@@ -57,7 +78,7 @@ export const EmployeeFormDialog = (
                 {employeeDetails?.id ? 'Edit Employee' : 'Add New Employee'}
             </HvDialogTitle>
             <HvDialogContent>
-                <form id="addEmployee" onSubmit={handleSubmit(addFormHandler)}>
+                <form id="addEmployee" onSubmit={handleSubmit(formSubmitHandler)}>
                     <HvGrid container spacing="sm">
                         <HvGrid item xs={12}>
                             <Controller
@@ -151,7 +172,7 @@ export const EmployeeFormDialog = (
                 </form>
             </HvDialogContent>
             <HvDialogActions>
-                <HvButton type="submit" form="addEmployee">Add</HvButton>
+                <HvButton type="submit" form="addEmployee">{employeeDetails.id ? 'Submit' : 'Add'}</HvButton>
                 <HvButton variant="secondary" onClick={dialogCloseHandler} >Cancel</HvButton>
             </HvDialogActions>
         </HvDialog>

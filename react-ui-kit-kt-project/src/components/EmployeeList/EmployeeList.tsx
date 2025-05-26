@@ -14,32 +14,28 @@ import {
 } from "@hitachivantara/uikit-react-core";
 import './EmployeeList.css';
 import { Employee } from "../../types/employees";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { Add, Caution, Delete, Edit } from "@hitachivantara/uikit-react-icons";
 import { getRandomColorToken } from "../../constants/colors";
 import { SnackbarType } from "../../types/snackbar";
 import { API_URL, ENDPOINTS } from "../../constants/endpoints";
 import { EmployeeFormDialog } from "../EmployeeFormDialog/EmployeeFormDialog";
+import { useDispatch, useSelector } from "react-redux";
+import { setEmployees } from "../../store/employeeListSlice";
+import { RootState } from "../../store/store";
+import { setEmployeeToEdit } from "../../store/employeeToEditSlice";
 
-const defaultValues: Employee = {
-    firstName: "",
-    lastName: "",
-    designation: "",
-    avatar: "",
-    skills: []
-};
-
-const defaultSnackbar: SnackbarType = {
+const defaultBanner: SnackbarType = {
     open: false,
     variant: '',
     message: ''
 }
 
 const EmployeeList = () => {
-    const [employees, setEmployees] = useState<Employee[]>([] as Employee[]);
-    const [employeeFetchError, setEmployeeFetchError] = useState({ employeesError: false, message: '' })
+    const [employeeFetchError, setEmployeeFetchError] = useState(defaultBanner)
     const [employeeDialog, setEmployeeDialog] = useState(false);
-    const [targetEmployee, setTargetEmployee] = useState<Employee>({} as Employee);
+    const dispatch = useDispatch();
+    const employees = useSelector((state: RootState) => state.employeeList?.employeeList);
 
     useEffect(() => {
         getEmployees();
@@ -48,10 +44,14 @@ const EmployeeList = () => {
     const getEmployees = () => {
         axios.get<Employee[]>(`${API_URL}/${ENDPOINTS.employees}`)
             .then(response => {
-                setEmployees(response.data);
+                dispatch(setEmployees(response.data));
             })
-            .catch(error => {
-                setEmployeeFetchError({ employeesError: true, message: 'Unable to fetch employees' });
+            .catch((error: AxiosError) => {
+                setEmployeeFetchError({
+                    open: true,
+                    variant: 'error',
+                    message: `Unable to fetch employees ${error?.response?.data}`
+                });
             });
     };
 
@@ -61,16 +61,10 @@ const EmployeeList = () => {
 
     const dialogCloseHandler = () => {
         setEmployeeDialog(false);
-        setTargetEmployee({} as Employee);
-    };
-
-    const newEmployeeHandler = (newEmployee: Employee) => {
-        setEmployees([...employees, newEmployee]);
-        dialogCloseHandler();
     };
 
     const onEditEmployee = (emp: Employee) => {
-        setTargetEmployee(emp);
+        dispatch(setEmployeeToEdit(emp));
         dialogOpenHandler();
     };
 
@@ -80,7 +74,8 @@ const EmployeeList = () => {
                 label={employeeFetchError.message}
                 variant="error"
                 showIcon
-                open={employeeFetchError.employeesError}
+                onClose={() => setEmployeeFetchError(defaultBanner)}
+                open={employeeFetchError.open}
             />
             <HvGlobalActions
                 variant="global"
@@ -146,9 +141,7 @@ const EmployeeList = () => {
 
             <EmployeeFormDialog
                 isOpen={employeeDialog}
-                addEmployeeHandler={newEmployeeHandler}
                 dialogCloseHandler={dialogCloseHandler}
-                employeeDetails={targetEmployee}
             />
         </>
     );
