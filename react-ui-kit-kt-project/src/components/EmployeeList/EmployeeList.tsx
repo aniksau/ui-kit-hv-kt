@@ -50,7 +50,7 @@ const EmployeeList = () => {
                 setEmployeeFetchError({
                     open: true,
                     variant: 'error',
-                    message: `Unable to fetch employees ${error?.response?.data}`
+                    message: `Unable to fetch employees: ${error?.response?.data}`
                 });
             });
     };

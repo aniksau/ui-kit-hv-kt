@@ -2,7 +2,7 @@ import { HvButton, HvInput, HvLogin, HvTypography } from "@hitachivantara/uikit-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export const Login = ({ loginHandler }: {loginHandler: any}) => {
+export const Login = ({ loginHandler }: { loginHandler: any }) => {
     const [credentials, setCredentials] = useState({
         username: "",
         password: ""
@@ -14,14 +14,13 @@ export const Login = ({ loginHandler }: {loginHandler: any}) => {
         event.preventDefault();
         if (credentials.username === 'admin' && credentials.password === 'abcd123') {
             loginHandler();
-            navigate("/main/home");
+            navigate("/main/employee-list");
         } else {
             alert('Invalid credentials!');
-        }  
-       
+        }
     };
 
-    return <HvLogin background="https://lumada-design.github.io/assets/login-bg1.png">
+    return <HvLogin background="https://lumada-design.github.io/assets/login-bg1.png" >
         <form
             className="grid gap-sm w-300px m-auto pt-150px"
             onSubmit={onLoginSubmit}
@@ -35,7 +34,7 @@ export const Login = ({ loginHandler }: {loginHandler: any}) => {
                 name="username"
                 placeholder="Enter text"
                 required
-                onChange={(event) => setCredentials({ ...credentials, username: event.target.value })}
+                onChange={(event) => setCredentials({ ...credentials, username: event?.target?.value })}
             />
             <HvInput
                 className="h-90px"
@@ -44,7 +43,7 @@ export const Login = ({ loginHandler }: {loginHandler: any}) => {
                 placeholder="Enter text"
                 required
                 type="password"
-                onChange={(event) => setCredentials({ ...credentials, password: event.target.value })}
+                onChange={(event) => setCredentials({ ...credentials, password: event?.target?.value })}
             />
             <HvButton
                 className="w-120px justify-self-end mt-sm"
