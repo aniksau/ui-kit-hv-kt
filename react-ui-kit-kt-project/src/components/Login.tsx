@@ -22,10 +22,11 @@ export const Login = ({ loginHandler }: { loginHandler: any }) => {
 
     return <HvLogin background="https://lumada-design.github.io/assets/login-bg1.png" >
         <form
-            className="grid gap-sm w-300px m-auto pt-150px"
+            className="gap-sm w-300px m-auto pt-150px"
             onSubmit={onLoginSubmit}
+            style={{ minHeight: '100vh' }}
         >
-            <HvTypography variant="title2">
+            <HvTypography variant="title2" className="mb-50px">
                 Welcome
             </HvTypography>
             <HvInput
@@ -54,5 +55,4 @@ export const Login = ({ loginHandler }: { loginHandler: any }) => {
             </HvButton>
         </form>
     </HvLogin>
-
 };
